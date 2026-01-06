@@ -128,3 +128,30 @@ func (doc *Document) insertSorted(entry Entry) {
 	copy(doc.Entries[i+1:], doc.Entries[i:])
 	doc.Entries[i] = entry
 }
+
+func (doc *Document) DeleteAt(cursor int) {
+	if cursor <= 0 { // Validate cursor position
+		return
+	}
+
+	visible := 0 // Track visible characters
+
+	// Find
+	for i := 0; i < len(doc.Entries); i++ {
+		e := &doc.Entries[i]
+
+		// Skip non-visible characters
+		if !e.Visible {
+			continue
+		}
+
+		// Preceeding character found
+		if visible == cursor-1 {
+			e.Visible = false // Set as non-visible
+			// broadcastDelete(e.ID)
+			return
+		}
+
+		visible++
+	}
+}
