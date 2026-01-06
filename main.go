@@ -7,6 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/Ameb8/term-sync/document"
 	"github.com/Ameb8/term-sync/editor"
 )
 
@@ -16,17 +17,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	path := os.Args[1] // Get filepath
+	path := os.Args[1]             // Get filepath
+	data, err := os.ReadFile(path) // Read file into memory
 
-	doc := DocumentFromBytes
+	if err != nil { // Error reading file
+		log.Fatal(err)
+	}
 
+	// Construct Document and Editor objects
+	doc := document.DocumentFromBytes(data, 0)
 	ed := editor.InitEditor(doc)
 
-	model := editor.Model{
-		Document: doc,
-		Editor:   ed,
-		CursorX:  0,
-		CursorY:  0,
+	model := &editor.Model{
+		Doc:     doc,
+		Editor:  ed,
+		CursorX: 0,
+		CursorY: 0,
 	}
 
 	p := tea.NewProgram(model, tea.WithAltScreen())

@@ -70,6 +70,6 @@ func (m *Model) DocumentCursorIndex() int {
 	return index
 }
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
