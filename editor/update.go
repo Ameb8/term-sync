@@ -12,28 +12,48 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 
-		case "ctrl+c":
+		case "ctrl+c": // Exit editor
 			return m, tea.Quit
 
-		case "left":
+		case "left": // Move cursor left
 			m.CursorX = max(0, m.CursorX-1)
 
-		case "right":
+		case "right": // Move cursor right
 			m.CursorX++
 
-		case "enter":
-			cursor := m.DocumentCursorIndex()
-			m.Doc.InsertAt(cursor, '\n')
-			m.Editor.Rebuild(m.Doc)
+		case "up": // Move cursor up
+			if m.CursorY > 0 {
+				m.CursorY--
+				lineLen := len(m.Editor.lines[m.CursorY])
+				if m.CursorX > lineLen {
+					m.CursorX = lineLen
+				}
+			}
+
+		case "down": // Move cursor down
+			if m.CursorY < len(m.Editor.lines)-1 {
+				m.CursorY++
+				lineLen := len(m.Editor.lines[m.CursorY])
+				if m.CursorX > lineLen {
+					m.CursorX = lineLen
+				}
+			}
+
+		case "enter": // Create newline
+			cursor := m.DocumentCursorIndex() // Get cursor index
+			m.Doc.InsertAt(cursor, '\n')      // Insert newline character
+			m.Editor.Rebuild(m.Doc)           // Update editor state
+
+			// Update cursor position
 			m.CursorX = 0
 			m.CursorY++
 
-		default:
-			if len(msg.Runes) > 0 {
-				cursor := m.DocumentCursorIndex()
-				m.Doc.InsertAt(cursor, msg.Runes[0])
-				m.Editor.Rebuild(m.Doc)
-				m.CursorX++
+		default: // Write letter to file
+			if len(msg.Runes) > 0 { // Write characters
+				cursor := m.DocumentCursorIndex()    // Get cursor index
+				m.Doc.InsertAt(cursor, msg.Runes[0]) // Insert character
+				m.Editor.Rebuild(m.Doc)              // Update editor state
+				m.CursorX++                          // Increment cursor position
 			}
 		}
 
