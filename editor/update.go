@@ -1,6 +1,10 @@
 package editor
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	"log"
+
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -73,6 +77,19 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else if m.CursorY > 0 {
 				m.CursorY--
 				m.CursorX = len(m.Editor.lines[m.CursorY])
+			}
+
+		case "ctrl+x": // Exit editor
+			if err := m.Save(); err != nil {
+				log.Println("Error saving file:", err)
+			}
+			return m, tea.Quit
+
+		case "ctrl+o": // Save file
+			if err := m.Save(); err != nil {
+				log.Println("Error saving file:", err)
+			} else {
+				log.Println("File saved!")
 			}
 
 		default: // Write letter to file

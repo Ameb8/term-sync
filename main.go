@@ -33,6 +33,7 @@ func main() {
 		Editor:  ed,
 		CursorX: 0,
 		CursorY: 0,
+		Path:    path,
 	}
 
 	p := tea.NewProgram(model, tea.WithAltScreen())

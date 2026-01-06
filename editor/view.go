@@ -81,5 +81,9 @@ func (m *Model) View() string {
 		lines = append(lines, blank)
 	}
 
+	// Add status bar to bottom of viewport
+	status := lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("Ctrl+O: Save | Ctrl+X: Quit")
+	lines = append(lines, status)
+
 	return lipgloss.JoinVertical(lipgloss.Left, lines...)
 }

@@ -1,6 +1,8 @@
 package editor
 
 import (
+	"os"
+
 	"github.com/Ameb8/term-sync/document"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -18,6 +20,9 @@ type Model struct {
 	// Cursor size
 	Width  int
 	Height int
+
+	// Path to file on system
+	Path string
 
 	// Server channel to listen to remote updates
 	// serverCh <-chan ServerEvent
@@ -72,4 +77,23 @@ func (m *Model) DocumentCursorIndex() int {
 
 func (m *Model) Init() tea.Cmd {
 	return nil
+}
+
+// Save file to host
+func (m *Model) Save() error {
+	var b []byte // Byte buffer to write to host
+
+	// Iterate through editor lines
+	for i, line := range m.Editor.lines {
+		// Add to buffer
+		b = append(b, []byte(string(line))...)
+
+		// Add newline except on last line
+		if i < len(m.Editor.lines)-1 {
+			b = append(b, '\n')
+		}
+	}
+
+	// Write to host
+	return os.WriteFile(m.Path, b, 0644)
 }
