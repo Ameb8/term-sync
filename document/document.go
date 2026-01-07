@@ -1,6 +1,28 @@
-package document
+﻿package document
 
 import "math/rand"
+
+type entryStore interface {
+	insert(entry Entry)
+	deleteByCursor(cursor int)
+	getNeighbors(cursor int) (EntryID, EntryID)
+	iterVisible(func(e Entry))
+	len() int
+}
+
+type projection interface {
+	// Update projection state
+	insert(cursor int, r rune)
+	delete(cursor int)
+
+	reset()
+
+	string() string // View as string
+
+	// Utility methods
+	len()
+	lineCount() int
+}
 
 // Component of character's identifier
 type PathElem struct {
@@ -22,8 +44,9 @@ type Entry struct {
 
 // Document representation
 type Document struct {
-	Entries []Entry // Ordered slice of all characters
-	Site    int     // this client’s unique ID
+	entries    entryStore // Ordered slice of all characters
+	Site       int        // this client’s unique ID
+	projection projection
 }
 
 var (
@@ -47,36 +70,6 @@ func CompareEntryID(a, b EntryID) int {
 	}
 
 	return len(a.Elements) - len(b.Elements)
-}
-
-func (doc *Document) neighborsAt(cursor int) (EntryID, EntryID) {
-	visible := 0
-	var left EntryID = BeginID
-
-	for _, e := range doc.Entries {
-		if !e.Visible {
-			continue
-		}
-
-		if visible == cursor {
-			return left, e.ID
-		}
-
-		left = e.ID
-		visible++
-	}
-
-	return left, EndID
-}
-
-func (doc *Document) InsertAt(cursor int, r rune) {
-	leftID, rightID := doc.neighborsAt(cursor)
-	newID := EntryIDBetween(leftID, rightID, doc.Site)
-
-	entry := Entry{ID: newID, Value: r, Visible: true}
-	doc.insertSorted(entry)
-
-	//broadcastInsert(entry)
 }
 
 func EntryIDBetween(left, right EntryID, site int) EntryID {
@@ -109,49 +102,50 @@ func EntryIDBetween(left, right EntryID, site int) EntryID {
 }
 
 func DocumentFromBytes(data []byte, site int) *Document {
-	doc := &Document{Site: site}
+	doc := &Document{
+		Site:       site,
+		entries:    newSliceStore(),
+		projection: newLineProjection(),
+	}
 
 	for _, r := range string(data) {
-		doc.InsertAt(len(doc.Entries), r)
+		doc.InsertAt(doc.entries.len(), r)
 	}
 
 	return doc
 }
 
-func (doc *Document) insertSorted(entry Entry) {
-	i := 0
-	for i < len(doc.Entries) && CompareEntryID(doc.Entries[i].ID, entry.ID) < 0 {
-		i++
-	}
+func (doc *Document) rebuildProjection() {
+	doc.projection.reset()
 
-	doc.Entries = append(doc.Entries, Entry{})
-	copy(doc.Entries[i+1:], doc.Entries[i:])
-	doc.Entries[i] = entry
+	cursor := 0
+	doc.entries.iterVisible(func(e Entry) {
+		doc.projection.insert(cursor, e.Value)
+		cursor++
+	})
+}
+
+// Insert char at given cursor location
+func (doc *Document) InsertAt(cursor int, r rune) {
+	// Determine id for new entry
+	leftID, rightID := doc.entries.getNeighbors(cursor)
+	newID := EntryIDBetween(leftID, rightID, doc.Site)
+
+	// Create and insert entry
+	entry := Entry{ID: newID, Value: r, Visible: true}
+	doc.entries.insert(entry)
+
+	// Update projection
+	doc.projection.insert(cursor, r)
+
+	//broadcastInsert(entry)
 }
 
 func (doc *Document) DeleteAt(cursor int) {
-	if cursor <= 0 { // Validate cursor position
-		return
-	}
+	doc.entries.deleteByCursor(cursor)
+	doc.projection.delete(cursor)
+}
 
-	visible := 0 // Track visible characters
-
-	// Find
-	for i := 0; i < len(doc.Entries); i++ {
-		e := &doc.Entries[i]
-
-		// Skip non-visible characters
-		if !e.Visible {
-			continue
-		}
-
-		// Preceeding character found
-		if visible == cursor-1 {
-			e.Visible = false // Set as non-visible
-			// broadcastDelete(e.ID)
-			return
-		}
-
-		visible++
-	}
+func (doc *Document) String() string {
+	return doc.projection.string()
 }
