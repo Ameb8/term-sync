@@ -10,6 +10,18 @@ type entryStore interface {
 	len() int
 }
 
+type Projection interface {
+	// Update projection state
+	insert(cursor int, r rune)
+	delete(cursor int)
+
+	string() string // View as string
+
+	// Utility methods
+	len()
+	lineCount() int
+}
+
 // Component of character's identifier
 type PathElem struct {
 	Digit int // Numerical identifier
@@ -30,8 +42,9 @@ type Entry struct {
 
 // Document representation
 type Document struct {
-	entries entryStore // Ordered slice of all characters
-	Site    int        // this client’s unique ID
+	entries    entryStore // Ordered slice of all characters
+	Site       int        // this client’s unique ID
+	projection Projection
 }
 
 var (
