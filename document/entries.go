@@ -4,11 +4,11 @@ type SliceStore struct {
 	entries []Entry
 }
 
-func NewSliceStore() *SliceStore {
+func newSliceStore() *SliceStore {
 	return &SliceStore{entries: []Entry{}}
 }
 
-func (s *SliceStore) Insert(entry Entry) {
+func (s *SliceStore) insert(entry Entry) {
 	i := 0
 	for i < len(s.entries) && CompareEntryID(s.entries[i].ID, entry.ID) < 0 {
 		i++
@@ -18,7 +18,7 @@ func (s *SliceStore) Insert(entry Entry) {
 	s.entries[i] = entry
 }
 
-func (s *SliceStore) DeleteByCursor(cursor int) {
+func (s *SliceStore) deleteByCursor(cursor int) {
 	visible := 0
 	for i := 0; i < len(s.entries); i++ {
 		e := &s.entries[i]
@@ -33,7 +33,7 @@ func (s *SliceStore) DeleteByCursor(cursor int) {
 	}
 }
 
-func (s *SliceStore) GetNeighbors(cursor int) (EntryID, EntryID) {
+func (s *SliceStore) getNeighbors(cursor int) (EntryID, EntryID) {
 	visible := 0
 	var left EntryID = BeginID
 	for _, e := range s.entries {
@@ -49,7 +49,7 @@ func (s *SliceStore) GetNeighbors(cursor int) (EntryID, EntryID) {
 	return left, EndID
 }
 
-func (s *SliceStore) IterVisible(f func(e Entry)) {
+func (s *SliceStore) iterVisible(f func(e Entry)) {
 	for _, e := range s.entries {
 		if e.Visible {
 			f(e)
@@ -57,7 +57,7 @@ func (s *SliceStore) IterVisible(f func(e Entry)) {
 	}
 }
 
-func (s *SliceStore) Len() int {
+func (s *SliceStore) len() int {
 	count := 0
 	for _, e := range s.entries {
 		if e.Visible {
