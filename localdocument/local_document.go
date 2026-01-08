@@ -1,13 +1,13 @@
-﻿package document
+package localdocument
 
-import "math/rand"
+import (
+	"github.com/Ameb8/term-sync/document"
+)
 
-type entryStore interface {
-	insert(entry Entry)
-	deleteByCursor(cursor int)
-	getNeighbors(cursor int) (EntryID, EntryID)
-	iterVisible(func(e Entry))
-	len() int
+type LocalDocument struct {
+	document   document.Document
+	projection projection
+	site       int
 }
 
 // Component of character's identifier
@@ -56,38 +56,11 @@ func CompareEntryID(a, b EntryID) int {
 	return len(a.Elements) - len(b.Elements)
 }
 
-func EntryIDBetween(left, right EntryID, site int) EntryID {
-	depth := 0
-
-	for {
-		var lDigit, rDigit int
-
-		if depth < len(left.Elements) {
-			lDigit = left.Elements[depth].Digit
-		} else {
-			lDigit = 0
-		}
-
-		if depth < len(right.Elements) {
-			rDigit = right.Elements[depth].Digit
-		} else {
-			rDigit = 1 << 30
-		}
-
-		if rDigit-lDigit > 1 {
-			d := lDigit + 1 + rand.Intn(rDigit-lDigit-1)
-			newElems := append([]PathElem{}, left.Elements[:depth]...)
-			newElems = append(newElems, PathElem{Digit: d, Site: site})
-			return EntryID{Elements: newElems}
-		}
-
-		depth++
-	}
-}
-
 func DocumentFromBytes(data []byte, site int) *Document {
 	doc := &Document{
-		entries: newSliceStore(),
+		Site:       site,
+		entries:    newSliceStore(),
+		projection: newLineProjection(),
 	}
 
 	for _, r := range string(data) {
@@ -97,19 +70,36 @@ func DocumentFromBytes(data []byte, site int) *Document {
 	return doc
 }
 
-// Insert char at given cursor location
-func (doc *Document) InsertAt(cursor int, r rune) {
-	// Determine id for new entry
-	leftID, rightID := doc.entries.getNeighbors(cursor)
-	newID := EntryIDBetween(leftID, rightID, doc.Site)
+func (localDoc *LocalDocument) rebuildProjection() {
+	localDoc.projection.reset()
 
-	// Create and insert entry
-	entry := Entry{ID: newID, Value: r, Visible: true}
-	doc.entries.insert(entry)
+	cursor := 0
+	doc.entries.iterVisible(func(e Entry) {
+		doc.projection.insert(cursor, e.Value)
+		cursor++
+	})
+}
+
+// Insert char at given cursor location
+func (localDoc *LocalDocument) InsertAt(cursor int, r rune) {
+	// Determine id for new entry
+	localDoc.document.InsertAt(cursor, r)
+
+	// Update projection
+	localDoc.projection.insert(cursor, r)
 
 	//broadcastInsert(entry)
 }
 
-func (doc *Document) DeleteAt(cursor int) {
-	doc.entries.deleteByCursor(cursor)
+func (localDoc *LocalDocument) DeleteAt(cursor int) {
+	localDoc.document.DeleteAt(cursor)
+	localDoc.projection.delete(cursor)
+}
+
+func (doc *LocalDocument) String() string {
+	return localDoc.projection.string()
+}
+
+func (localDoc *LocalDocument) Project() [][]rune {
+	return localDoc.projection.getLines()
 }
