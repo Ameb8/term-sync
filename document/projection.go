@@ -2,23 +2,6 @@ package document
 
 import "strings"
 
-/*
-
-type projection interface {
-	// Update projection state
-	insert(cursor int, r rune)
-	delete(cursor int)
-
-	string() string // View as string
-
-	// Utility methods
-	len()
-	lineCount() int
-
-	reset()
-}
-*/
-
 type LineProjection struct {
 	lines        [][]rune
 	cachedString string
@@ -70,6 +53,32 @@ func (p *LineProjection) insert(cursor int, r rune) {
 	p.dirty = true
 }
 
+func (p *LineProjection) delete(cursor int) {
+	// Backspace at start does nothing
+	if cursor <= 0 || cursor > p.len() {
+		return
+	}
+
+	// Get index of character before cursor
+	pos := cursor - 1
+	line, col := p.cursorToLineCol(pos)
+
+	// Delete character within line
+	if col < len(p.lines[line]) {
+		l := p.lines[line]
+		p.lines[line] = append(l[:col], l[col+1:]...)
+		p.dirty = true
+		return
+	}
+
+	// Delete newline and merge lines
+	if line < len(p.lines)-1 {
+		p.lines[line] = append(p.lines[line], p.lines[line+1]...)
+		p.lines = append(p.lines[:line+1], p.lines[line+2:]...)
+		p.dirty = true
+	}
+}
+
 func (p *LineProjection) string() string {
 	if !p.dirty {
 		return p.cachedString
@@ -100,6 +109,10 @@ func (p *LineProjection) len() int {
 	return count
 }
 
-func (p *LineProjection) LineCount() int {
+func (p *LineProjection) lineCount() int {
 	return len(p.lines)
+}
+
+func (p *LineProjection) getLines() [][]rune {
+	return p.lines
 }
