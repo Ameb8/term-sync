@@ -26,11 +26,9 @@ func main() {
 
 	// Construct Document and Editor objects
 	doc := document.DocumentFromBytes(data, 0)
-	ed := editor.InitEditor(doc)
 
 	model := &editor.Model{
 		Doc:     doc,
-		Editor:  ed,
 		CursorX: 0,
 		CursorY: 0,
 		Path:    path,

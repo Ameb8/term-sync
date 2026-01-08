@@ -50,17 +50,23 @@ func (m *Model) View() string {
 		return ""
 	}
 
+	docLines := m.Doc.Project()  // Get file projection
+	usableHeight := m.Height - 1 // Max usable height
+
+	// calculate vertical viewport offsets
+	start := m.ViewportY
+	end := min(start+usableHeight, len(docLines))
+
 	var lines []string
-	maxLines := min(len(m.Editor.lines), m.Height)
 
-	for y := 0; y < maxLines; y++ {
-		line := m.Editor.lines[y]
-
+	// Iterate through lines being displayed
+	for i, line := range docLines[start:end] {
+		y := start + i // Calculate next line to display
 		var rendered string
 
-		if y == m.CursorY {
+		if y == m.CursorY { // Render line with cursor
 			rendered = m.renderCursorLine(line)
-		} else {
+		} else { // Render line normally
 			rendered = string(line)
 		}
 
@@ -81,9 +87,12 @@ func (m *Model) View() string {
 		lines = append(lines, blank)
 	}
 
-	// Add status bar to bottom of viewport
-	status := lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("Ctrl+O: Save | Ctrl+X: Quit")
-	lines = append(lines, status)
+	// Create status bar
+	status := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("2")).
+		Render("Ctrl+O: Save | Ctrl+X: Quit")
+
+	lines = append(lines, status) // Display status bar
 
 	return lipgloss.JoinVertical(lipgloss.Left, lines...)
 }

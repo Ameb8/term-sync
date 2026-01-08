@@ -18,9 +18,10 @@ type projection interface {
 	reset()
 
 	string() string // View as string
+	getLines() [][]rune
 
 	// Utility methods
-	len()
+	len() int
 	lineCount() int
 }
 
@@ -148,4 +149,8 @@ func (doc *Document) DeleteAt(cursor int) {
 
 func (doc *Document) String() string {
 	return doc.projection.string()
+}
+
+func (doc *Document) Project() [][]rune {
+	return doc.projection.getLines()
 }
