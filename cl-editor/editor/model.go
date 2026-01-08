@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Ameb8/term-sync/document"
+	"github.com/Ameb8/term-sync/cl-editor/document"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

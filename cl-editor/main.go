@@ -7,8 +7,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/Ameb8/term-sync/document"
-	"github.com/Ameb8/term-sync/editor"
+	"github.com/Ameb8/term-sync/cl-editor/document"
+	"github.com/Ameb8/term-sync/cl-editor/editor"
 )
 
 func main() {
