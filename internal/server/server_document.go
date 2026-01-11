@@ -1,8 +1,9 @@
 package server
 
 import (
-	"alexbuckley/term-sync/internal/document"
 	"sync"
+
+	"github.com/Ameb8/term-sync/internal/document"
 )
 
 // Holds authoritative server-side state of document

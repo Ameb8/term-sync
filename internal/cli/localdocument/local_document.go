@@ -25,10 +25,14 @@ type LocalDocument struct {
 }
 
 func LocalDocumentFromBytes(data []byte, site int) *LocalDocument {
-	return &LocalDocument{
+	// Initialize LocalDocument
+	doc := &LocalDocument{
 		document:   document.DocumentFromBytes(data, site),
 		projection: newLineProjection(),
 	}
+
+	doc.rebuildProjection() // Initialize projection
+	return doc
 }
 
 func (doc *LocalDocument) rebuildProjection() {
