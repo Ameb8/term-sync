@@ -7,8 +7,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/Ameb8/term-sync/document"
-	"github.com/Ameb8/term-sync/editor"
+	"github.com/Ameb8/term-sync/cl-editor/document"
+	"github.com/Ameb8/term-sync/cl-editor/editor"
 )
 
 func main() {
@@ -26,11 +26,9 @@ func main() {
 
 	// Construct Document and Editor objects
 	doc := document.DocumentFromBytes(data, 0)
-	ed := editor.InitEditor(doc)
 
 	model := &editor.Model{
 		Doc:     doc,
-		Editor:  ed,
 		CursorX: 0,
 		CursorY: 0,
 		Path:    path,
