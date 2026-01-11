@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Ameb8/term-sync/cl-editor/document"
+	"github.com/Ameb8/term-sync/internal/cli/localdocument"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 // Bubble Tea model
 type Model struct {
 	// Document/Editor state
-	Doc *document.Document
+	Doc *localdocument.LocalDocument
 
 	// Cursor coordinates
 	CursorX int

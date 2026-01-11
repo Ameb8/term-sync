@@ -1,7 +1,7 @@
-package main
+package server
 
 import (
-	"alexbuckley/term-sync/document"
+	"alexbuckley/term-sync/internal/document"
 	"sync"
 )
 

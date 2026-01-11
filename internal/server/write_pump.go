@@ -1,4 +1,4 @@
-package main
+package server
 
 // Continuously sends messages form send channel to WS
 func (c *Client) writePump() {
