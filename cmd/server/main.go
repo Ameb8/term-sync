@@ -3,11 +3,13 @@ package main
 import (
 	"log"
 	"net/http"
+
+	"github.com/Ameb8/term-sync/internal/server"
 )
 
 func main() {
 	// Create server instance
-	server := NewServer()
+	server := server.NewServer()
 
 	// Handle websocket connections at '/ws'
 	http.HandleFunc("/ws", server.ServeWS)

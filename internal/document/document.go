@@ -1,4 +1,4 @@
-package main
+﻿package document
 
 import "math/rand"
 
@@ -32,7 +32,6 @@ type Entry struct {
 type Document struct {
 	entries entryStore // Ordered slice of all characters
 	Site    int        // this client’s unique ID
-
 }
 
 var (
@@ -40,26 +39,7 @@ var (
 	EndID   = EntryID{Elements: []PathElem{{Digit: 1 << 30, Site: 0}}}
 )
 
-func CompareEntryID(a, b EntryID) int {
-	n := len(a.Elements)
-
-	if len(b.Elements) < n {
-		n = len(b.Elements)
-	}
-
-	for i := 0; i < n; i++ {
-		if a.Elements[i].Digit != b.Elements[i].Digit {
-			return a.Elements[i].Digit - b.Elements[i].Digit
-		}
-		if a.Elements[i].Site != b.Elements[i].Site {
-			return a.Elements[i].Site - b.Elements[i].Site
-		}
-	}
-
-	return len(a.Elements) - len(b.Elements)
-}
-
-func EntryIDBetween(left, right EntryID, site int) EntryID {
+func entryIDBetween(left, right EntryID, site int) EntryID {
 	depth := 0
 
 	for {
@@ -105,7 +85,7 @@ func DocumentFromBytes(data []byte, site int) *Document {
 func (doc *Document) InsertAt(cursor int, r rune) {
 	// Determine id for new entry
 	leftID, rightID := doc.entries.getNeighbors(cursor)
-	newID := EntryIDBetween(leftID, rightID, doc.Site)
+	newID := entryIDBetween(leftID, rightID, doc.Site)
 
 	// Create and insert entry
 	entry := Entry{ID: newID, Value: r, Visible: true}
@@ -116,4 +96,10 @@ func (doc *Document) InsertAt(cursor int, r rune) {
 
 func (doc *Document) DeleteAt(cursor int) {
 	doc.entries.deleteByCursor(cursor)
+}
+
+func (doc *Document) IterVisible(f func(r rune)) {
+	doc.entries.iterVisible(func(e Entry) {
+		f(e.Value)
+	})
 }

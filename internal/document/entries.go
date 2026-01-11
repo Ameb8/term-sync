@@ -1,4 +1,4 @@
-package main
+package document
 
 type SliceStore struct {
 	entries []Entry
@@ -8,9 +8,27 @@ func newSliceStore() *SliceStore {
 	return &SliceStore{entries: []Entry{}}
 }
 
+func compareEntryID(a, b EntryID) int {
+	n := len(a.Elements)
+	if len(b.Elements) < n {
+		n = len(b.Elements)
+	}
+
+	for i := 0; i < n; i++ {
+		if a.Elements[i].Digit != b.Elements[i].Digit {
+			return a.Elements[i].Digit - b.Elements[i].Digit
+		}
+		if a.Elements[i].Site != b.Elements[i].Site {
+			return a.Elements[i].Site - b.Elements[i].Site
+		}
+	}
+
+	return len(a.Elements) - len(b.Elements)
+}
+
 func (s *SliceStore) insert(entry Entry) {
 	i := 0
-	for i < len(s.entries) && CompareEntryID(s.entries[i].ID, entry.ID) < 0 {
+	for i < len(s.entries) && compareEntryID(s.entries[i].ID, entry.ID) < 0 {
 		i++
 	}
 	s.entries = append(s.entries, Entry{})

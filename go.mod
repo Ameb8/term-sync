@@ -1,10 +1,11 @@
-module github.com/Ameb8/term-sync/cl-editor
+module github.com/Ameb8/term-sync
 
 go 1.24.4
 
 require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
+	github.com/gorilla/websocket v1.5.3
 )
 
 require (

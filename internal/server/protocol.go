@@ -1,6 +1,6 @@
-package main
+package server
 
-import "alexbuckley/term-sync/document"
+import "github.com/Ameb8/term-sync/internal/document"
 
 // Message definitions for server/client communication
 type Message struct {
