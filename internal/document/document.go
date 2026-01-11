@@ -30,8 +30,9 @@ type Entry struct {
 
 // Document representation
 type Document struct {
-	entries entryStore // Ordered slice of all characters
-	Site    int        // this client’s unique ID
+	entries     entryStore // Ordered slice of all characters
+	Site        int        // this client’s unique ID
+	Broadcaster Broadcaster
 }
 
 var (
@@ -68,10 +69,11 @@ func entryIDBetween(left, right EntryID, site int) EntryID {
 	}
 }
 
-func DocumentFromBytes(data []byte, site int) *Document {
+func DocumentFromBytes(data []byte, site int, b Broadcaster) *Document {
 	doc := &Document{
-		Site:    site,
-		entries: newSliceStore(),
+		Site:        site,
+		entries:     newSliceStore(),
+		Broadcaster: b,
 	}
 
 	for _, r := range string(data) {
@@ -91,11 +93,23 @@ func (doc *Document) InsertAt(cursor int, r rune) {
 	entry := Entry{ID: newID, Value: r, Visible: true}
 	doc.entries.insert(entry)
 
-	//broadcastInsert(entry)
+	if doc.Broadcaster != nil {
+		doc.Broadcaster.BroadcastChanges([]Change{
+			{Type: Insert, Entry: &entry},
+		})
+	}
 }
 
 func (doc *Document) DeleteAt(cursor int) {
 	doc.entries.deleteByCursor(cursor)
+
+	// Broadcast deletions
+	if doc.Broadcaster != nil {
+		doc.Broadcaster.BroadcastChanges([]Change{
+			{Type: Delete, Cursor: cursor},
+		})
+	}
+
 }
 
 func (doc *Document) IterVisible(f func(r rune)) {
